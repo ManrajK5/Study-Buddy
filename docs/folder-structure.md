@@ -1,0 +1,58 @@
+# Folder Structure
+
+```text
+study-buddy/
+  backend/
+    app/
+      api/
+        deps.py
+        routes/
+          analytics.py
+          chat.py
+          courses.py
+          health.py
+          upload.py
+      agents/
+        workflow.py
+      core/
+        config.py
+        logging.py
+      database/
+        supabase.py
+      models/
+        schemas.py
+      prompts/
+        deadline_extraction.md
+        validation.md
+      rag/
+        chunking.py
+        embeddings.py
+        pipeline.py
+        retriever.py
+      services/
+        analytics_service.py
+        course_service.py
+        document_service.py
+      utils/
+        pdf.py
+      main.py
+    requirements.txt
+    .env.example
+  frontend/
+    src/
+      components/
+      context/
+      hooks/
+      layouts/
+      pages/
+      services/
+  supabase/
+    migrations/
+      001_initial_schema.sql
+  docs/
+    architecture.md
+    folder-structure.md
+    roadmap.md
+```
+
+The backend is organized by responsibility rather than by framework accident. Routes handle HTTP, services own business behavior, `rag/` owns retrieval, and `agents/` owns LangGraph orchestration.
