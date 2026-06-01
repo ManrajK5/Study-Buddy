@@ -47,7 +47,7 @@ export function CoursesPage() {
     }
   }
 
-  if (!userId) return <EmptyState icon={AlertCircle} title="Add your user UUID" body="Paste your Supabase Auth user UUID in the header before managing courses." />;
+  if (!userId) return <EmptyState icon={AlertCircle} title="Sign in to manage courses" body="Use Google sign-in before creating or editing courses." />;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">

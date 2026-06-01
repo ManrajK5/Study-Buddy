@@ -15,7 +15,7 @@ export function DashboardPage({ onNavigate }: { onNavigate: (page: Page) => void
   const documents = useAsync(() => (userId ? api.listDocuments(userId, accessToken) : Promise.resolve([])), [userId, accessToken]);
 
   if (!userId) {
-    return <EmptyState icon={AlertCircle} title="Connect your test user" body="Paste your Supabase Auth user UUID in the header to load courses, documents, chat, and analytics." />;
+    return <EmptyState icon={AlertCircle} title="Sign in to Study Buddy" body="Use Google sign-in to load your courses, documents, chat, and analytics." />;
   }
 
   const summary = analytics.data;

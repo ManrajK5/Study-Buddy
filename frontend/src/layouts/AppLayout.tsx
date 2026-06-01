@@ -1,5 +1,5 @@
-import { BarChart3, BookOpen, Bot, CalendarDays, FileUp, LayoutDashboard, LogOut, Settings } from 'lucide-react';
-import { ReactNode } from 'react';
+import { BarChart3, BookOpen, Bot, FileUp, LayoutDashboard, LogOut } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 import { Page } from '../App';
 import { useAppContext } from '../context/AppContext';
 
@@ -12,7 +12,17 @@ const navItems: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
 ];
 
 export function AppLayout({ page, onPageChange, children }: { page: Page; onPageChange: (page: Page) => void; children: ReactNode }) {
-  const { userId, setUserId, userEmail, signInWithGoogle, signOut, isAuthConfigured, authReady } = useAppContext();
+  const { userEmail, signInWithGoogle, signOut, isAuthConfigured, authReady } = useAppContext();
+  const [authError, setAuthError] = useState('');
+
+  async function handleGoogleSignIn() {
+    setAuthError('');
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Google sign-in failed.');
+    }
+  }
 
   return (
     <div className="min-h-screen bg-app text-ink">
@@ -53,7 +63,7 @@ export function AppLayout({ page, onPageChange, children }: { page: Page; onPage
               <p className="text-sm text-muted">Workspace</p>
               <h1 className="text-xl font-semibold text-ink md:text-2xl">{navItems.find((item) => item.id === page)?.label}</h1>
             </div>
-            <div className="flex flex-col gap-2 md:flex-row md:items-center">
+            <div className="flex flex-col items-start gap-2 md:flex-row md:items-center">
               {userEmail ? (
                 <div className="flex items-center gap-2 rounded-lg border border-line bg-app px-3 py-2 text-sm">
                   <span className="max-w-56 truncate text-muted">{userEmail}</span>
@@ -63,24 +73,16 @@ export function AppLayout({ page, onPageChange, children }: { page: Page; onPage
                 </div>
               ) : isAuthConfigured ? (
                 <button
-                  onClick={signInWithGoogle}
+                  onClick={handleGoogleSignIn}
                   disabled={!authReady}
                   className="rounded-lg bg-ink px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   Sign in with Google
                 </button>
-              ) : null}
-              {!userEmail && (
-                <div className="flex items-center gap-2 rounded-lg border border-line bg-app px-3 py-2">
-                  <Settings size={16} className="text-muted" />
-                  <input
-                    value={userId}
-                    onChange={(event) => setUserId(event.target.value.trim())}
-                    placeholder="Supabase user UUID"
-                    className="w-full min-w-0 bg-transparent text-sm outline-none md:w-80"
-                  />
-                </div>
+              ) : (
+                <span className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">Auth environment is missing</span>
               )}
+              {authError && <span className="max-w-md text-sm text-red-600">{authError}</span>}
             </div>
           </div>
           <div className="mt-3 flex gap-2 overflow-x-auto lg:hidden">
@@ -101,11 +103,6 @@ export function AppLayout({ page, onPageChange, children }: { page: Page; onPage
         </header>
         <div className="px-4 py-6 lg:px-8">{children}</div>
       </main>
-
-      <div className="fixed bottom-4 right-4 hidden items-center gap-2 rounded-full border border-line bg-white px-3 py-2 text-xs text-muted shadow-soft md:flex">
-        <CalendarDays size={14} />
-        Local dev API: 127.0.0.1:8000
-      </div>
     </div>
   );
 }

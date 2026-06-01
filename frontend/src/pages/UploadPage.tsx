@@ -123,7 +123,7 @@ export function UploadPage({ onNavigate }: { onNavigate: (page: Page) => void })
     }
   }
 
-  if (!userId) return <EmptyState icon={AlertCircle} title="Add your user UUID" body="Paste your Supabase Auth user UUID in the header before uploading PDFs." />;
+  if (!userId) return <EmptyState icon={AlertCircle} title="Sign in to upload PDFs" body="Use Google sign-in before uploading syllabi or lecture documents." />;
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">

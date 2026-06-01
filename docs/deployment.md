@@ -92,6 +92,14 @@ Start Command: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 Health Check Path: /api/v1/health
 ```
 
+Python version:
+
+```text
+PYTHON_VERSION=3.12.3
+```
+
+Render's default Python version can be newer than this app's tested runtime. Keep `PYTHON_VERSION=3.12.3` in Render Environment variables. The repo also includes `.python-version` files at the repository root and in `backend/` so Render can detect the intended version when deploying from a monorepo.
+
 Environment variables:
 
 ```text
@@ -146,6 +154,8 @@ VITE_API_BASE_URL=https://YOUR_RENDER_SERVICE.onrender.com/api/v1
 VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
+
+`VITE_SUPABASE_URL` must be only the project URL. Do not paste the auth callback URL, `/auth/v1/callback`, or any dashboard URL here.
 
 The same variable list is available in `frontend/.env.production.example`.
 

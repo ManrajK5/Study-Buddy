@@ -4,7 +4,6 @@ import { isSupabaseFrontendConfigured, supabase } from '../services/supabase';
 
 type AppContextValue = {
   userId: string;
-  setUserId: (value: string) => void;
   accessToken: string | null;
   googleAccessToken: string | null;
   userEmail: string | null;
@@ -14,16 +13,17 @@ type AppContextValue = {
   isAuthConfigured: boolean;
 };
 
-const defaultUserId = localStorage.getItem('study-buddy-user-id') ?? '';
 const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [userIdState, setUserIdState] = useState(defaultUserId);
   const [session, setSession] = useState<Session | null>(null);
-  const [authReady, setAuthReady] = useState(!isSupabaseFrontendConfigured);
+  const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseFrontendConfigured) return;
+    if (!isSupabaseFrontendConfigured) {
+      setAuthReady(true);
+      return;
+    }
 
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
@@ -31,23 +31,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      if (nextSession?.user.id) {
-        localStorage.setItem('study-buddy-user-id', nextSession.user.id);
-      }
     });
     return () => data.subscription.unsubscribe();
   }, []);
 
-  const sessionUserId = session?.user.id ?? '';
-  const userId = sessionUserId || userIdState;
+  const userId = session?.user.id ?? '';
 
   const value = useMemo(
     () => ({
       userId,
-      setUserId: (next: string) => {
-        setUserIdState(next);
-        localStorage.setItem('study-buddy-user-id', next);
-      },
       accessToken: session?.access_token ?? null,
       googleAccessToken: session?.provider_token ?? null,
       userEmail: session?.user.email ?? null,

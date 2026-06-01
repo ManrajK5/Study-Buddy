@@ -38,7 +38,7 @@ export function ChatPage() {
     }
   }
 
-  if (!userId) return <EmptyState icon={AlertCircle} title="Add your user UUID" body="Paste your Supabase Auth user UUID in the header before chatting with documents." />;
+  if (!userId) return <EmptyState icon={AlertCircle} title="Sign in to chat" body="Use Google sign-in before chatting with uploaded documents." />;
 
   return (
     <div className="grid min-h-[calc(100vh-140px)] gap-6 xl:grid-cols-[0.75fr_1.25fr]">

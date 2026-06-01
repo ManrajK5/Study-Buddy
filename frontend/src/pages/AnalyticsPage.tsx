@@ -20,7 +20,7 @@ export function AnalyticsPage() {
   const [editingEvent, setEditingEvent] = useState<AcademicEvent | null>(null);
   const [editMessage, setEditMessage] = useState<string | null>(null);
 
-  if (!userId) return <EmptyState icon={AlertCircle} title="Add your user UUID" body="Paste your Supabase Auth user UUID in the header before loading analytics." />;
+  if (!userId) return <EmptyState icon={AlertCircle} title="Sign in to view analytics" body="Use Google sign-in before loading deadlines, charts, and calendar sync." />;
   if (analytics.error) return <EmptyState icon={AlertCircle} title="Analytics failed" body={formatApiError(analytics.error)} />;
 
   const summary = analytics.data;
