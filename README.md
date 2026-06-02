@@ -35,4 +35,4 @@ API docs will be available at `http://localhost:8000/docs`.
 - [Deployment Guide](docs/deployment.md)
 - [Supabase Schema](supabase/migrations/001_initial_schema.sql)
 - [Supabase Embed Function](supabase/functions/embed/index.ts)
-- [Google Sign-In And Calendar Sync](docs/google-auth-calendar.md)
+- [Google Sign-In And Calendar Export](docs/google-auth-calendar.md)

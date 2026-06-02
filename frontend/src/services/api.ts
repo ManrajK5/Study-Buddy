@@ -72,6 +72,20 @@ export const api = {
       accessToken,
       body: JSON.stringify({ google_access_token: googleAccessToken, calendar_id: 'primary', event_ids: eventIds }),
     }),
+  exportCalendar: async (userId: string, accessToken?: string | null) => {
+    const headers = new Headers();
+    if (accessToken) {
+      headers.set('Authorization', `Bearer ${accessToken}`);
+    } else {
+      headers.set('x-user-id', userId);
+    }
+    const response = await fetch(`${API_BASE_URL}/calendar/export.ics`, { method: 'GET', headers });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new ApiError(text || response.statusText, response.status);
+    }
+    return response.blob();
+  },
   updateEvent: (userId: string, eventId: string, payload: Record<string, unknown>, accessToken?: string | null) =>
     request('/events/' + eventId, { method: 'PATCH', userId, accessToken, body: JSON.stringify(payload) }),
   deleteEvent: (userId: string, eventId: string, accessToken?: string | null) =>

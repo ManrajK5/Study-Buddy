@@ -77,7 +77,7 @@ Authorized redirect URI:
 https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
 ```
 
-If the app is still in Testing mode, add recruiter emails as test users. For a public portfolio link, publish the OAuth consent screen when you are ready.
+For a public portfolio link, publish the OAuth consent screen to production. Study Buddy only requests `openid email profile` for sign-in, while calendar sharing uses downloadable `.ics` files instead of sensitive Google Calendar OAuth scopes.
 
 ## 4. Deploy The Backend On Render
 
@@ -174,7 +174,7 @@ Open the Vercel URL and test this recruiter demo path:
 7. Confirm upcoming events only.
 8. Ask the chatbot: `What assignments are due next week?`
 9. Open Analytics and verify course labels, event editing, and charts.
-10. Sync selected upcoming events to Google Calendar.
+10. Download the `.ics` calendar export and import it into Google Calendar, Apple Calendar, or Outlook.
 
 ## 7. Portfolio Notes
 

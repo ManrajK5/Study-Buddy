@@ -67,7 +67,7 @@ flowchart LR
 - pgvector indexes support semantic retrieval at scale, while embedding generation is isolated behind an Edge Function so the model provider can change later.
 - Service boundaries make it straightforward to add caching, background jobs, observability, and billing later.
 - Typed Pydantic schemas keep API contracts stable as the React client grows.
-- Google Calendar sync uses a short-lived Google provider token from the active Supabase OAuth session rather than storing provider tokens in Postgres.
+- Calendar export generates iCalendar files from upcoming verified deadlines, avoiding sensitive Google Calendar OAuth scopes for public recruiter demos.
 
 ## Frontend Architecture
 

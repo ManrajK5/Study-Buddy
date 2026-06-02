@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import HTTPException, status
@@ -11,6 +12,55 @@ from app.utils.supabase_errors import raise_supabase_http_error
 
 
 class GoogleCalendarService:
+    async def export_deadlines_ics(self, user_id: UUID, event_ids: list[UUID] | None = None) -> str:
+        events = self._load_events(user_id=user_id, event_ids=event_ids)
+        timestamp = self._format_ics_datetime(datetime.now(timezone.utc))
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Study Buddy//Academic Deadlines//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "X-WR-CALNAME:Study Buddy Deadlines",
+            "X-WR-TIMEZONE:UTC",
+        ]
+
+        for event in events:
+            if not event.get("due_at"):
+                continue
+            start = self._parse_datetime(event["due_at"])
+            end = start + timedelta(minutes=30)
+            description = event.get("description") or "Exported from Study Buddy."
+            metadata = [
+                f"Type: {event.get('event_type')}",
+                f"Verification: {event.get('verification_status')}",
+            ]
+            if event.get("grading_weight") is not None:
+                metadata.append(f"Weight: {event['grading_weight']}%")
+            if event.get("estimated_hours") is not None:
+                metadata.append(f"Estimated study hours: {event['estimated_hours']}")
+
+            lines.extend(
+                [
+                    "BEGIN:VEVENT",
+                    f"UID:study-buddy-{event['id']}@study-buddy",
+                    f"DTSTAMP:{timestamp}",
+                    f"DTSTART:{self._format_ics_datetime(start)}",
+                    f"DTEND:{self._format_ics_datetime(end)}",
+                    f"SUMMARY:{self._escape_ics_text('Study Buddy: ' + event['title'])}",
+                    f"DESCRIPTION:{self._escape_ics_text(description + chr(10) + chr(10) + chr(10).join(metadata))}",
+                    "BEGIN:VALARM",
+                    "TRIGGER:-PT24H",
+                    "ACTION:DISPLAY",
+                    f"DESCRIPTION:{self._escape_ics_text('Reminder: ' + event['title'])}",
+                    "END:VALARM",
+                    "END:VEVENT",
+                ]
+            )
+
+        lines.append("END:VCALENDAR")
+        return "\r\n".join(self._fold_ics_line(line) for line in lines) + "\r\n"
+
     async def sync_deadlines(self, user_id: UUID, payload: CalendarSyncRequest) -> CalendarSyncResponse:
         events = self._load_events(user_id=user_id, event_ids=payload.event_ids)
         synced_count = 0
@@ -84,7 +134,28 @@ class GoogleCalendarService:
         }
 
     def _end_time(self, start: str) -> str:
-        from datetime import datetime
-
         normalized = start.replace("Z", "+00:00")
         return (datetime.fromisoformat(normalized) + timedelta(minutes=30)).isoformat()
+
+    def _parse_datetime(self, value: str) -> datetime:
+        normalized = value.replace("Z", "+00:00")
+        parsed = datetime.fromisoformat(normalized)
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+
+    def _format_ics_datetime(self, value: datetime) -> str:
+        return value.astimezone(ZoneInfo("UTC")).strftime("%Y%m%dT%H%M%SZ")
+
+    def _escape_ics_text(self, value: str) -> str:
+        return value.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
+
+    def _fold_ics_line(self, line: str) -> str:
+        if len(line) <= 75:
+            return line
+        chunks = [line[:75]]
+        remaining = line[75:]
+        while remaining:
+            chunks.append(" " + remaining[:74])
+            remaining = remaining[74:]
+        return "\r\n".join(chunks)

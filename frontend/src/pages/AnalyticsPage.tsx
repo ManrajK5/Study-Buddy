@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarPlus, CalendarDays, Check, Pencil, PieChart as PieIcon, Trash2 } from 'lucide-react';
+import { AlertCircle, CalendarDays, Check, Download, Pencil, PieChart as PieIcon, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { EmptyState } from '../components/EmptyState';
@@ -13,10 +13,10 @@ const colors = ['#2563eb', '#0f9f8f', '#e05d44', '#d89418', '#7c3aed', '#475467'
 
 export function AnalyticsPage() {
   const { userId } = useAppContext();
-  const { accessToken, googleAccessToken, signInWithGoogle } = useAppContext();
+  const { accessToken } = useAppContext();
   const analytics = useAsync(() => (userId ? api.analytics(userId, accessToken) : Promise.resolve(null)), [userId, accessToken]);
-  const [syncMessage, setSyncMessage] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
+  const [calendarMessage, setCalendarMessage] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<AcademicEvent | null>(null);
   const [editMessage, setEditMessage] = useState<string | null>(null);
 
@@ -31,25 +31,28 @@ export function AnalyticsPage() {
     }, {}),
   ).map(([name, value]) => ({ name, value }));
 
-  async function syncCalendar() {
-    if (!googleAccessToken) {
-      await signInWithGoogle();
-      return;
-    }
-    setSyncing(true);
-    setSyncMessage(null);
+  async function exportCalendar() {
+    setExporting(true);
+    setCalendarMessage(null);
     try {
-      const eventIds = (summary?.upcoming_deadlines ?? []).map((event) => event.id);
-      if (!eventIds.length) {
-        setSyncMessage('No upcoming extracted deadlines to sync.');
+      if (!(summary?.upcoming_deadlines ?? []).length) {
+        setCalendarMessage('No upcoming extracted deadlines to export.');
         return;
       }
-      const result = await api.syncCalendar(userId, googleAccessToken, eventIds, accessToken);
-      setSyncMessage(`Synced ${result.synced_count} of ${eventIds.length} visible deadlines to Google Calendar${result.failed.length ? `; ${result.failed.length} failed.` : '.'}`);
+      const blob = await api.exportCalendar(userId, accessToken);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'study-buddy-deadlines.ics';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setCalendarMessage('Calendar file downloaded. Import it into Google Calendar, Apple Calendar, or Outlook.');
     } catch (error) {
-      setSyncMessage(formatApiError(error));
+      setCalendarMessage(formatApiError(error));
     } finally {
-      setSyncing(false);
+      setExporting(false);
     }
   }
 
@@ -94,15 +97,15 @@ export function AnalyticsPage() {
       <section className="rounded-lg border border-line bg-white p-5 shadow-soft">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Google Calendar sync</h2>
-            <p className="mt-1 text-sm text-muted">Send extracted deadlines to your primary Google Calendar.</p>
+            <h2 className="text-lg font-semibold">Calendar export</h2>
+            <p className="mt-1 text-sm text-muted">Download upcoming extracted deadlines as an iCalendar file for Google Calendar, Apple Calendar, or Outlook.</p>
           </div>
-          <button onClick={syncCalendar} disabled={syncing} className="flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-            <CalendarPlus size={17} />
-            {syncing ? 'Syncing...' : googleAccessToken ? 'Sync deadlines' : 'Connect Google Calendar'}
+          <button onClick={exportCalendar} disabled={exporting} className="flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+            <Download size={17} />
+            {exporting ? 'Preparing...' : 'Download .ics'}
           </button>
         </div>
-        {syncMessage && <p className="mt-3 rounded-lg bg-app px-3 py-2 text-sm text-muted">{syncMessage}</p>}
+        {calendarMessage && <p className="mt-3 rounded-lg bg-app px-3 py-2 text-sm text-muted">{calendarMessage}</p>}
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">

@@ -2,7 +2,9 @@ from uuid import UUID
 
 from fastapi import Header, HTTPException, status
 
+from app.core.config import settings
 from app.database.supabase import get_supabase_admin
+
 
 async def get_current_user_id(
     authorization: str | None = Header(default=None),
@@ -16,7 +18,13 @@ async def get_current_user_id(
         except Exception as exc:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Supabase access token.") from exc
 
-    # Development fallback used before the frontend auth flow is configured.
+    if settings.app_env.lower() == "production":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Supabase Bearer token.",
+        )
+
+    # Development fallback for local Swagger/API testing only.
     if not x_user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

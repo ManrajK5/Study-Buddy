@@ -1,15 +1,14 @@
-# Google Sign-In And Calendar Sync
+# Google Sign-In And Calendar Export
 
-Study Buddy uses Supabase Auth for Google sign-in and Google Calendar API for deadline sync.
+Study Buddy uses Supabase Auth for Google sign-in. Calendar sharing is handled with a downloadable iCalendar (`.ics`) file so any signed-in user can export deadlines without granting sensitive Google Calendar permissions.
 
 ## 1. Google Cloud Setup
 
 1. Open Google Cloud Console.
 2. Create or select a project.
 3. Configure the OAuth consent screen.
-4. Enable the Google Calendar API.
-5. Create an OAuth Client ID with application type `Web application`.
-6. Add authorized JavaScript origins for local development:
+4. Create an OAuth Client ID with application type `Web application`.
+5. Add authorized JavaScript origins for local development:
 
 ```text
 http://localhost:5174
@@ -18,7 +17,7 @@ http://localhost:5173
 http://127.0.0.1:5173
 ```
 
-7. Add the Supabase Auth callback URL as an authorized redirect URI:
+6. Add the Supabase Auth callback URL as an authorized redirect URI:
 
 ```text
 https://your-project-ref.supabase.co/auth/v1/callback
@@ -52,12 +51,18 @@ Restart the frontend dev server after editing `.env`.
 The frontend requests these Google scopes during Supabase OAuth:
 
 ```text
-openid email profile https://www.googleapis.com/auth/calendar.events
+openid email profile
 ```
 
-After sign-in, Supabase returns a Supabase access token and a Google provider token. The Supabase token authenticates Study Buddy API requests. The Google provider token is sent to `POST /api/v1/calendar/sync` only when the user clicks sync.
+After sign-in, Supabase returns a Supabase access token. The token authenticates Study Buddy API requests.
 
-Provider tokens are not stored in the Study Buddy database in this implementation.
+When the user clicks `Download .ics`, the frontend calls:
+
+```text
+GET /api/v1/calendar/export.ics
+```
+
+The backend loads upcoming extracted deadlines for the signed-in user and returns a standards-compatible iCalendar file. The user can import that file into Google Calendar, Apple Calendar, Outlook, or other calendar apps.
 
 ## 5. Test Flow
 
@@ -66,5 +71,5 @@ Provider tokens are not stored in the Study Buddy database in this implementatio
 3. Click `Sign in with Google`.
 4. Upload a PDF and extract deadlines.
 5. Open Analytics.
-6. Click `Sync deadlines`.
-7. Check Google Calendar.
+6. Click `Download .ics`.
+7. Import the downloaded file into Google Calendar, Apple Calendar, or Outlook.

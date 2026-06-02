@@ -50,11 +50,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           provider: 'google',
           options: {
             redirectTo: window.location.origin,
-            scopes: 'openid email profile https://www.googleapis.com/auth/calendar.events',
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'consent',
-            },
+            scopes: 'openid email profile',
           },
         });
         if (error) throw error;
