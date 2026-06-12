@@ -1,6 +1,8 @@
 # Study Buddy
 
 Study Buddy is a production-style AI academic assistant for uploading syllabi and lecture PDFs, extracting academic deadlines, chatting with course documents through RAG, and generating personalized study plans.
+Link: https://study-buddy-tan-seven.vercel.app/
+Demo: https://youtu.be/LEAjihpyL4c
 
 ## Stack
 
